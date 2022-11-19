@@ -1,0 +1,2 @@
+/node_modules 
+# No importar la carpeta node_modules a git
