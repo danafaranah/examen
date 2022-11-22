@@ -61,10 +61,22 @@ categoryCtrl.deleteCategory = async(req, res) => {
     try {
         const { id } = req.params;
 
-        const category = await categoryModel.findById(id);
+        const category = await categoryModel.findById(req.body.id);
+
+        const producto = await productModel.findOne({ category: id });
 
         if (!category) {
             return response(res, 404, false, "", "Categoría no encontrada");
+        }
+
+        if (producto) {
+            return response(
+                res,
+                409,
+                false,
+                "",
+                "No puedes eliminar esta categoría porque tiene productos asociados a ella."
+            );
         }
 
         if (category.public_id) {
@@ -80,7 +92,7 @@ categoryCtrl.deleteCategory = async(req, res) => {
 categoryCtrl.updateCategory = async(req, res) => {
     try {
         const { id } = req.params;
-        const category = await categoryModel.findById(id);
+        const category = await categoryModel.findById(req.body.id);
 
         if (!category) {
             return response(res, 404, false, "", "Categoría no encontrada");

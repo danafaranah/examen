@@ -6,11 +6,11 @@ import { upload } from "../middleware/imgUpload.js";
 const route = Router()
 
 route.get("/", productCtrl.getProducts);
-route.get("/{id}", productCtrl.getProductsById);
+route.get("/:id", productCtrl.getProductsById);
 route.post("/", verifyToken, upload.single("img"), productCtrl.addProduct);
-route.delete("/{id}", verifyToken, productCtrl.deleteProduct);
+route.delete("/:id", verifyToken, productCtrl.deleteProduct);
 route.put(
-    "/{id}",
+    "/:id",
     verifyToken,
     upload.single("img"),
     productCtrl.updateProduct

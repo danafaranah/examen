@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from "dotenv";
+dotenv.config();
 
 import express from "express";
 import cors from "cors";
@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 import categoryRoutes from "./routes/category.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import productRoutes from "./routes/product.routes.js";
-
+import orderRoutes from "./routes/order.routes.js";
 
 connectDb();
 
@@ -35,7 +35,8 @@ app.use(express.json());
 app.use("/category", categoryRoutes);
 app.use("/user", userRoutes);
 app.use("/product", productRoutes);
+app.use("/order", orderRoutes);
 
 app.listen(app.get("port"), () => {
-    console.log("test\n port:", app.get("port"));
+    console.log("Server on Port", app.get("port"));
 });

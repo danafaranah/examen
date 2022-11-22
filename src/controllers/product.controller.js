@@ -3,7 +3,10 @@ import {
     uploadImageToCloudinary,
 } from "../helpers/cloudinary.actions.js";
 import { response } from "../helpers/Response.js";
+import { categoryModel } from "../models/category.model.js";
+import { orderModel } from "../models/order.model.js";
 import { productModel } from "../models/product.model.js";
+import { userModel } from "../models/user.model.js";
 
 const productCtrl = {};
 
@@ -34,20 +37,31 @@ productCtrl.getProductsById = async(req, res) => {
 
 productCtrl.addProduct = async(req, res) => {
     try {
-        const { name, description, rate, category } = req.body;
+        const { name, description, rate, category, price, stock } = req.body;
+
+        const catExistence = await categoryModel.findById(req.body.category);
         const newProduct = new productModel({
             name,
             description,
+            price,
             rate,
             category,
+            stock,
+            user: req.userId,
         });
 
-        if (category) {
-            return response(res, 404, false, "", "Categoría no encontrada");
+        if (!catExistence) {
+            return response(
+                res,
+                404,
+                false,
+                "La categoría elegida no existe en la base de datos"
+            );
         }
+
         if (req.file) {
             const { secure_url, public_id } = await uploadImageToCloudinary(req.file);
-            newPost.setImg({ secure_url, public_id });
+            newProduct.setImg({ secure_url, public_id });
         }
 
         await productModel.create(newProduct);
@@ -61,8 +75,20 @@ productCtrl.deleteProduct = async(req, res) => {
     try {
         const { id } = req.params;
         const product = productModel.findById(id);
+        const order = await orderModel.findOne({ factura: id });
+
+        if (order) {
+            return response(
+                res,
+                409,
+                false,
+                "",
+                "No se puede eliminar el producto ya que está asociado a una factura"
+            );
+        }
+
         if (!product) {
-            response(res, 404, false, "", "No se encontró el producto");
+            return response(res, 404, false, "", "No se encontró el producto");
         }
 
         if (product.public_id) {
@@ -70,7 +96,7 @@ productCtrl.deleteProduct = async(req, res) => {
                 const { secure_url, public_id } = await uploadImageToCloudinary(
                     req.file
                 );
-                newPost.setImg({ secure_url, public_id });
+                product.setImg({ secure_url, public_id });
             }
         }
         await product.deleteOne();
@@ -84,8 +110,19 @@ productCtrl.updateProduct = async(req, res) => {
     try {
         const { id } = req.params;
         const product = await productModel.findById(id);
+        const catExistence = await categoryModel.findById(req.body.category);
+
         if (!product) {
             return response(res, 404, false, "", "Producto no encontrado");
+        }
+
+        if (!catExistence) {
+            return response(
+                res,
+                404,
+                false,
+                "La categoría elegida no existe en la base de datos"
+            );
         }
 
         if (req.file) {
